@@ -28,7 +28,8 @@ public class DatabaseManager {
             statement.executeUpdate("CREATE SEQUENCE IF NOT EXISTS organization_id_seq START WITH 1 INCREMENT BY 1");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS users (" +
                     "username VARCHAR(64) PRIMARY KEY," +
-                    "password_hash VARCHAR(56) NOT NULL)");
+                    "password_hash VARCHAR(128) NOT NULL)");
+            statement.executeUpdate("ALTER TABLE users ALTER COLUMN password_hash TYPE VARCHAR(128)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS organizations (" +
                     "id BIGINT PRIMARY KEY DEFAULT nextval('organization_id_seq')," +
                     "name VARCHAR(255) NOT NULL," +
@@ -53,14 +54,14 @@ public class DatabaseManager {
         }
     }
 
-    public boolean authenticate(String username, String passwordHash) throws Exception {
+    public Optional<String> passwordHashFor(String username) throws Exception {
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT 1 FROM users WHERE username = ? AND password_hash = ?")) {
+                     "SELECT password_hash FROM users WHERE username = ?")) {
             statement.setString(1, username);
-            statement.setString(2, passwordHash);
             try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next();
+                if (resultSet.next()) return Optional.of(resultSet.getString("password_hash"));
+                return Optional.empty();
             }
         }
     }

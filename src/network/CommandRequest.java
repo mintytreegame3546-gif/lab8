@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("serial")
 public class CommandRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 

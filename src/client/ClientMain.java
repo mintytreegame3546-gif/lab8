@@ -1,6 +1,7 @@
 package client;
 
 import data.Organization;
+import client.gui.MainFrame;
 import managers.InputManager;
 import network.CommandRequest;
 import network.CommandResponse;
@@ -30,8 +31,12 @@ public final class ClientMain {
     private ClientMain() {
     }
     public static void main(String[] args) throws Exception {
-        String host = args.length > 0 ? args[0] : "localhost";
-        int port = args.length > 1 ? Integer.parseInt(args[1]) : DEFAULT_PORT;
+        if (args.length == 0 || !"--cli".equals(args[0])) {
+            MainFrame.launch(args);
+            return;
+        }
+        String host = args.length > 1 ? args[1] : "localhost";
+        int port = args.length > 2 ? Integer.parseInt(args[2]) : DEFAULT_PORT;
         InetSocketAddress server = new InetSocketAddress(host, port);
 
         try (DatagramChannel channel = DatagramChannel.open(); Scanner scanner = new Scanner(System.in)) {

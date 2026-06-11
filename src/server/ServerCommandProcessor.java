@@ -99,7 +99,8 @@ public final class ServerCommandProcessor {
 
     private boolean isAuthorized(Credentials credentials) throws Exception {
         if (!credentials.isComplete()) return false;
-        return databaseManager.authenticate(credentials.username(), passwordHasher.hash(credentials.password()));
+        Optional<String> storedHash = databaseManager.passwordHashFor(credentials.username());
+        return storedHash.isPresent() && passwordHasher.matches(credentials.password(), storedHash.get());
     }
 
     private Optional<Credentials> credentialsFromRequest(CommandRequest request) {
@@ -110,15 +111,5 @@ public final class ServerCommandProcessor {
 
     private void register(ServerCommand command) {
         commands.put(command.getName(), command);
-    }
-
-    private static class Credentials {
-        private final String username;
-        private final String password;
-
-        private Credentials(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
     }
 }
