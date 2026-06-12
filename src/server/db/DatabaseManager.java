@@ -1,6 +1,7 @@
 package server.db;
 
 import data.Address;
+import data.CommandHistoryRecord;
 import data.Coordinates;
 import data.Organization;
 import data.OrganizationType;
@@ -41,6 +42,17 @@ public class DatabaseManager {
                     "street VARCHAR(255)," +
                     "zip_code VARCHAR(64)," +
                     "owner_username VARCHAR(64) NOT NULL REFERENCES users(username))");
+            try (PreparedStatement historySequence = connection.prepareStatement(
+                    "CREATE SEQUENCE IF NOT EXISTS command_history_id_seq START WITH 1 INCREMENT BY 1");
+                 PreparedStatement historyTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS command_history (" +
+                         "id BIGINT PRIMARY KEY DEFAULT nextval('command_history_id_seq')," +
+                         "username VARCHAR(64) NOT NULL REFERENCES users(username)," +
+                         "command_name VARCHAR(128) NOT NULL," +
+                         "executed_at TIMESTAMP NOT NULL," +
+                         "success BOOLEAN NOT NULL)")) {
+                historySequence.executeUpdate();
+                historyTable.executeUpdate();
+            }
         }
     }
 
@@ -52,6 +64,43 @@ public class DatabaseManager {
             statement.setString(2, passwordHash);
             return statement.executeUpdate() > 0;
         }
+    }
+
+    public boolean userExists(String username) throws Exception {
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT 1 FROM users WHERE username = ?")) {
+            statement.setString(1, username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    public void saveCommandHistory(String username, String commandName, boolean success) throws Exception {
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "INSERT INTO command_history(username, command_name, executed_at, success) VALUES (?, ?, ?, ?)")) {
+            statement.setString(1, username);
+            statement.setString(2, commandName);
+            statement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+            statement.setBoolean(4, success);
+            statement.executeUpdate();
+        }
+    }
+
+    public List<CommandHistoryRecord> loadCommandHistory(String username) throws Exception {
+        List<CommandHistoryRecord> history = new ArrayList<>();
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT id, username, command_name, executed_at, success FROM command_history "
+                             + "WHERE username = ? ORDER BY executed_at DESC, id DESC")) {
+            statement.setString(1, username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) history.add(readHistoryRecord(resultSet));
+            }
+        }
+        return history;
     }
 
     public Optional<String> passwordHashFor(String username) throws Exception {
@@ -151,6 +200,12 @@ public class DatabaseManager {
                 resultSet.getFloat("annual_turnover"), type == null ? null : OrganizationType.valueOf(type),
                 new Address(resultSet.getString("street"), resultSet.getString("zip_code")),
                 resultSet.getString("owner_username"));
+    }
+
+    private CommandHistoryRecord readHistoryRecord(ResultSet resultSet) throws Exception {
+        return new CommandHistoryRecord(resultSet.getLong("id"), resultSet.getString("username"),
+                resultSet.getString("command_name"), resultSet.getTimestamp("executed_at").toLocalDateTime(),
+                resultSet.getBoolean("success"));
     }
 
     private Organization copyWithServerFields(Organization source, long id, LocalDateTime creationDate,

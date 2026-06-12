@@ -2,6 +2,7 @@ package server.commands;
 
 import network.CommandRequest;
 import network.CommandResponse;
+import server.db.DatabaseManager;
 
 import java.util.HashSet;
 import java.util.List;
@@ -11,9 +12,11 @@ import java.util.Set;
 public class ExecuteScriptServerCommand implements ServerCommand {
     private static final int MAX_RECURSION = 5;
     private final Map<String, ServerCommand> commands;
+    private final DatabaseManager databaseManager;
 
-    public ExecuteScriptServerCommand(Map<String, ServerCommand> commands) {
+    public ExecuteScriptServerCommand(Map<String, ServerCommand> commands, DatabaseManager databaseManager) {
         this.commands = commands;
+        this.databaseManager = databaseManager;
     }
 
     public String getName() { return "execute_script"; }
@@ -66,6 +69,7 @@ public class ExecuteScriptServerCommand implements ServerCommand {
                 continue;
             }
             CommandResponse response = executeNestedCommand(commandName, commandArgs, scripts, request);
+            saveNestedHistory(request, commandName, response);
             output.append(response.getMessage()).append("\n");
         }
         active.remove(fileName);
@@ -82,6 +86,13 @@ public class ExecuteScriptServerCommand implements ServerCommand {
             return new CommandResponse(false, "Error: Please enter a valid number");
         } catch (Exception e) {
             return new CommandResponse(false, "Error executing command: " + e.getMessage());
+        }
+    }
+
+    private void saveNestedHistory(CommandRequest request, String commandName, CommandResponse response) {
+        try {
+            databaseManager.saveCommandHistory(request.getUsername(), commandName, response.isSuccess());
+        } catch (Exception ignored) {
         }
     }
 }

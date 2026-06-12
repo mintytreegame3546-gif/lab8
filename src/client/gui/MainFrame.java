@@ -50,6 +50,7 @@ public final class MainFrame extends JFrame implements Localized {
     private final JButton script = new JButton();
     private final JButton info = new JButton();
     private final JButton help = new JButton();
+    private final JButton history = new JButton();
     private final JButton refresh = new JButton();
     private final JCheckBoxMenuItem darkTheme = new JCheckBoxMenuItem();
     private final JMenu language = new JMenu();
@@ -111,11 +112,12 @@ public final class MainFrame extends JFrame implements Localized {
         script.setText(localeManager.text("main.script"));
         info.setText(localeManager.text("main.info"));
         help.setText(localeManager.text("main.help"));
+        history.setText(localeManager.text("main.history"));
         refresh.setText(localeManager.text("main.refresh"));
         darkTheme.setText(localeManager.text("main.theme"));
         language.setText(localeManager.text("main.language"));
         status.setText(localeManager.text("status.ready"));
-        table.getTableHeader().repaint();
+        tableModel.localeChanged();
         updateTotal();
     }
 
@@ -131,7 +133,7 @@ public final class MainFrame extends JFrame implements Localized {
         add(top, BorderLayout.NORTH);
 
         JPanel buttons = new JPanel(new GridLayout(0, 1, 4, 4));
-        for (JButton button : new JButton[]{add, addIfMin, edit, delete, clear, removeFirst, removeLower, script, info, help, refresh}) {
+        for (JButton button : new JButton[]{add, addIfMin, edit, delete, clear, removeFirst, removeLower, script, info, help, history, refresh}) {
             buttons.add(button);
         }
         VisualizationPanel visualization = new VisualizationPanel(tableModel, localeManager);
@@ -202,6 +204,7 @@ public final class MainFrame extends JFrame implements Localized {
         script.addActionListener(action(this::chooseScript));
         info.addActionListener(action(() -> controller.commandMessage("info", message -> showMessage(message, localeManager.text("main.info")))));
         help.addActionListener(action(() -> controller.commandMessage("help", message -> showMessage(message, localeManager.text("main.help")))));
+        history.addActionListener(action(() -> HistoryDialog.show(this, localeManager, controller)));
         refresh.addActionListener(action(controller::refresh));
     }
 
