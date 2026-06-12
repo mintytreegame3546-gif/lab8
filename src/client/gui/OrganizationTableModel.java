@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.table.AbstractTableModel;
 
@@ -67,22 +66,14 @@ public final class OrganizationTableModel extends AbstractTableModel {
     }
 
     public int getRowCount() { return visible.size(); }
-    public int getColumnCount() { return 10; }
+    public int getColumnCount() { return OrganizationTableColumn.count(); }
 
     public String getColumnName(int column) {
-        return switch (column) {
-            case 0 -> localeManager.text("table.id");
-            case 1 -> localeManager.text("table.name");
-            case 2 -> localeManager.text("table.x");
-            case 3 -> localeManager.text("table.y");
-            case 4 -> localeManager.text("table.created");
-            case 5 -> localeManager.text("table.turnover");
-            case 6 -> localeManager.text("table.type");
-            case 7 -> localeManager.text("table.street");
-            case 8 -> localeManager.text("table.zip");
-            case 9 -> localeManager.text("table.owner");
-            default -> "";
-        };
+        return OrganizationTableColumn.isValid(column) ? column(column).localizedName(localeManager) : "";
+    }
+
+    public void localeChanged() {
+        fireTableStructureChanged();
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
@@ -128,38 +119,79 @@ public final class OrganizationTableModel extends AbstractTableModel {
     }
 
     private Comparator<Organization> comparatorFor(int column) {
-        return switch (column) {
-            case 0 -> Comparator.comparingLong(Organization::getId);
-            case 1 -> Comparator.comparing(Organization::getName, Comparator.nullsFirst(String::compareTo));
-            case 2 -> Comparator.comparing(o -> o.getCoordinates().getX(), Comparator.nullsFirst(Long::compareTo));
-            case 3 -> Comparator.comparing(o -> o.getCoordinates().getY(), Comparator.nullsFirst(Double::compareTo));
-            case 4 -> Comparator.comparing(Organization::getCreationDate);
-            case 5 -> Comparator.comparing(Organization::getAnnualTurnover);
-            case 6 -> Comparator.comparing(o -> String.valueOf(o.getType()));
-            case 7 -> Comparator.comparing(stringValue(o -> o.getOfficialAddress().getStreet()));
-            case 8 -> Comparator.comparing(stringValue(o -> o.getOfficialAddress().getZipCode()));
-            case 9 -> Comparator.comparing(stringValue(Organization::getOwnerUsername));
-            default -> null;
-        };
-    }
-
-    private Function<Organization, String> stringValue(Function<Organization, String> getter) {
-        return organization -> String.valueOf(getter.apply(organization));
+        return OrganizationTableColumn.isValid(column) ? column(column).comparator() : null;
     }
 
     private Object rawValue(Organization organization, int column) {
-        return switch (column) {
-            case 0 -> organization.getId();
-            case 1 -> organization.getName();
-            case 2 -> organization.getCoordinates().getX();
-            case 3 -> organization.getCoordinates().getY();
-            case 4 -> organization.getCreationDate();
-            case 5 -> organization.getAnnualTurnover();
-            case 6 -> organization.getType();
-            case 7 -> organization.getOfficialAddress().getStreet();
-            case 8 -> organization.getOfficialAddress().getZipCode();
-            case 9 -> organization.getOwnerUsername();
-            default -> "";
+        return OrganizationTableColumn.isValid(column) ? column(column).rawValue(organization) : "";
+    }
+
+    private OrganizationTableColumn column(int column) {
+        return OrganizationTableColumn.at(column);
+    }
+
+    private enum OrganizationTableColumn {
+        ID("table.id", Comparator.comparingLong(Organization::getId)) {
+            Object rawValue(Organization organization) { return organization.getId(); }
+        },
+        NAME("table.name", Comparator.comparing(Organization::getName, Comparator.nullsFirst(String::compareTo))) {
+            Object rawValue(Organization organization) { return organization.getName(); }
+        },
+        X("table.x", Comparator.comparing(o -> o.getCoordinates().getX(), Comparator.nullsFirst(Long::compareTo))) {
+            Object rawValue(Organization organization) { return organization.getCoordinates().getX(); }
+        },
+        Y("table.y", Comparator.comparing(o -> o.getCoordinates().getY(), Comparator.nullsFirst(Double::compareTo))) {
+            Object rawValue(Organization organization) { return organization.getCoordinates().getY(); }
+        },
+        CREATED("table.created", Comparator.comparing(Organization::getCreationDate)) {
+            Object rawValue(Organization organization) { return organization.getCreationDate(); }
+        },
+        TURNOVER("table.turnover", Comparator.comparing(Organization::getAnnualTurnover)) {
+            Object rawValue(Organization organization) { return organization.getAnnualTurnover(); }
+        },
+        TYPE("table.type", Comparator.comparing(o -> String.valueOf(o.getType()))) {
+            Object rawValue(Organization organization) { return organization.getType(); }
+        },
+        STREET("table.street", Comparator.comparing(o -> String.valueOf(o.getOfficialAddress().getStreet()))) {
+            Object rawValue(Organization organization) { return organization.getOfficialAddress().getStreet(); }
+        },
+        ZIP("table.zip", Comparator.comparing(o -> String.valueOf(o.getOfficialAddress().getZipCode()))) {
+            Object rawValue(Organization organization) { return organization.getOfficialAddress().getZipCode(); }
+        },
+        OWNER("table.owner", Comparator.comparing(o -> String.valueOf(o.getOwnerUsername()))) {
+            Object rawValue(Organization organization) { return organization.getOwnerUsername(); }
         };
+
+        private static final OrganizationTableColumn[] COLUMNS = values();
+
+        private final String textKey;
+        private final Comparator<Organization> comparator;
+
+        OrganizationTableColumn(String textKey, Comparator<Organization> comparator) {
+            this.textKey = textKey;
+            this.comparator = comparator;
+        }
+
+        static int count() {
+            return COLUMNS.length;
+        }
+
+        static boolean isValid(int index) {
+            return index >= 0 && index < COLUMNS.length;
+        }
+
+        static OrganizationTableColumn at(int index) {
+            return COLUMNS[index];
+        }
+
+        String localizedName(LocaleManager localeManager) {
+            return localeManager.text(textKey);
+        }
+
+        Comparator<Organization> comparator() {
+            return comparator;
+        }
+
+        abstract Object rawValue(Organization organization);
     }
 }

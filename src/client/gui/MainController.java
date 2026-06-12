@@ -1,5 +1,6 @@
 package client.gui;
 
+import data.CommandHistoryRecord;
 import data.Organization;
 import network.CommandResponse;
 
@@ -48,6 +49,10 @@ public final class MainController {
         run(() -> client.command(command, args), response -> messageConsumer.accept(localeManager.message(response.getMessage())), true);
     }
 
+    public void history(Consumer<List<CommandHistoryRecord>> historyConsumer, Consumer<String> statusConsumer) {
+        run(() -> client.command("history"), response -> historyConsumer.accept(response.getHistory()), false, statusConsumer);
+    }
+
     public void executeScript(Path path) {
         run(() -> client.executeScript(path), response -> refresh(), true);
     }
@@ -60,6 +65,10 @@ public final class MainController {
     }
 
     private void run(Task task, Consumer<CommandResponse> success, boolean reportSuccess) {
+        run(task, success, reportSuccess, status);
+    }
+
+    private void run(Task task, Consumer<CommandResponse> success, boolean reportSuccess, Consumer<String> statusConsumer) {
         new SwingWorker<CommandResponse, Void>() {
             protected CommandResponse doInBackground() throws Exception {
                 return task.execute();
@@ -68,10 +77,10 @@ public final class MainController {
             protected void done() {
                 try {
                     CommandResponse response = get();
-                    if (reportSuccess || !response.isSuccess()) status.accept(localeManager.message(response.getMessage()));
+                    if (reportSuccess || !response.isSuccess()) statusConsumer.accept(localeManager.message(response.getMessage()));
                     if (response.isSuccess()) success.accept(response);
                 } catch (Exception e) {
-                    status.accept(localeManager.message(e.getMessage()));
+                    statusConsumer.accept(localeManager.message(e.getMessage()));
                 }
             }
         }.execute();

@@ -11,6 +11,7 @@ import server.commands.ClearServerCommand;
 import server.commands.ExecuteScriptServerCommand;
 import server.commands.FilterNameServerCommand;
 import server.commands.HelpServerCommand;
+import server.commands.HistoryServerCommand;
 import server.commands.InfoServerCommand;
 import server.commands.PrintAddressAscServerCommand;
 import server.commands.RemoveByIdServerCommand;
@@ -48,24 +49,37 @@ public final class ServerCommandProcessor {
         register(new SumTurnoverServerCommand(collectionManager));
         register(new FilterNameServerCommand(collectionManager));
         register(new PrintAddressAscServerCommand(collectionManager));
-        register(new ExecuteScriptServerCommand(commands));
+        register(new HistoryServerCommand(databaseManager));
+        register(new ExecuteScriptServerCommand(commands, databaseManager));
         register(new HelpServerCommand(commands));
     }
 
     public CommandResponse process(CommandRequest request) {
         try {
-            if ("register".equals(request.getCommandName())) return registerUser(request);
-            if ("login".equals(request.getCommandName())) return loginUser(request);
+            if ("register".equals(request.getCommandName())) return processAuthenticationCommand(request, this::registerUser);
+            if ("login".equals(request.getCommandName())) return processAuthenticationCommand(request, this::loginUser);
             if (!isAuthorized(request.getCredentials())) {
                 return new CommandResponse(false, "Error: authorization is required. Use login or register first");
             }
-            return executeCommand(request);
-        } catch (NumberFormatException e) {
-            return new CommandResponse(false, "Error: Please enter a valid number");
+            return executeCommandWithHistory(request);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to process command " + request.getCommandName(), e);
             return new CommandResponse(false, "Error executing command: " + e.getMessage());
         }
+    }
+
+    private CommandResponse executeCommandWithHistory(CommandRequest request) {
+        CommandResponse response;
+        try {
+            response = executeCommand(request);
+        } catch (NumberFormatException e) {
+            response = new CommandResponse(false, "Error: Please enter a valid number");
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to process command " + request.getCommandName(), e);
+            response = new CommandResponse(false, "Error executing command: " + e.getMessage());
+        }
+        saveHistory(request.getUsername(), request.getCommandName(), response.isSuccess());
+        return response;
     }
 
     private CommandResponse executeCommand(CommandRequest request) throws Exception {
@@ -74,6 +88,23 @@ public final class ServerCommandProcessor {
             return new CommandResponse(false, "Error: Unknown command. Enter 'help' for available commands");
         }
         return command.execute(request);
+    }
+
+    private CommandResponse processAuthenticationCommand(CommandRequest request, AuthCommand authCommand) throws Exception {
+        CommandResponse response = authCommand.execute(request);
+        Optional<Credentials> credentials = credentialsFromRequest(request);
+        if (credentials.isPresent() && (response.isSuccess() || databaseManager.userExists(credentials.get().username()))) {
+            saveHistory(credentials.get().username(), request.getCommandName(), response.isSuccess());
+        }
+        return response;
+    }
+
+    private void saveHistory(String username, String commandName, boolean success) {
+        try {
+            databaseManager.saveCommandHistory(username, commandName, success);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to save command history for " + username, e);
+        }
     }
 
     private CommandResponse registerUser(CommandRequest request) throws Exception {
@@ -111,5 +142,10 @@ public final class ServerCommandProcessor {
 
     private void register(ServerCommand command) {
         commands.put(command.getName(), command);
+    }
+
+    @FunctionalInterface
+    private interface AuthCommand {
+        CommandResponse execute(CommandRequest request) throws Exception;
     }
 }
