@@ -41,6 +41,13 @@ public final class OrganizationTableModel extends AbstractTableModel {
         return visible.get(row);
     }
 
+    public int rowById(long id) {
+        for (int row = 0; row < visible.size(); row++) {
+            if (visible.get(row).getId() == id) return row;
+        }
+        return -1;
+    }
+
     public void setFilter(String filter) {
         this.filter = filter == null ? "" : filter.toLowerCase(localeManager.locale());
         rebuild();

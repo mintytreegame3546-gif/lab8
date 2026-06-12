@@ -22,6 +22,16 @@ public class AppTexts_de extends ListResourceBundle {
                 {"table.owner", "Eigentümer"}, {"dialog.ok", "OK"}, {"dialog.cancel", "Abbrechen"},
                 {"dialog.confirmClear", "Alle eigenen Organisationen löschen?"},
                 {"dialog.details", "Organisationsdetails"}, {"dialog.form", "Organisation"},
+                {"main.refresh", "Aktualisieren"},
+                {"error.invalidInput", "Ungültige Eingabe. Prüfen Sie Zahlenfelder und Pflichtwerte."},
+                {"error.authRequired", "Autorisierung erforderlich. Melden Sie sich an oder registrieren Sie sich."},
+                {"error.invalidCredentials", "Ungültiger Benutzername oder ungültiges Passwort."},
+                {"error.userExists", "Benutzer existiert bereits."},
+                {"error.loginRequired", "Anmeldung erfordert Benutzername und Passwort."},
+                {"error.registerRequired", "Registrierung erfordert Benutzername und Passwort."},
+                {"error.unknownCommand", "Unbekannter Befehl."},
+                {"error.serverUnavailable", "Server ist vorübergehend nicht verfügbar."},
+                {"error.payloadRequired", "Organisationsdaten sind erforderlich."},
                 {"status.ready", "Bereit"}, {"error.select", "Bitte zuerst eine Organisation wählen"},
                 {"error.owner", "Sie dürfen nur eigene Organisationen ändern"}
         };

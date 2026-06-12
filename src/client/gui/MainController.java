@@ -10,11 +10,14 @@ import javax.swing.SwingWorker;
 
 public final class MainController {
     private final GuiCommandClient client;
+    private final LocaleManager localeManager;
     private final Consumer<List<Organization>> organizations;
     private final Consumer<String> status;
 
-    public MainController(GuiCommandClient client, Consumer<List<Organization>> organizations, Consumer<String> status) {
+    public MainController(GuiCommandClient client, LocaleManager localeManager,
+                          Consumer<List<Organization>> organizations, Consumer<String> status) {
         this.client = client;
+        this.localeManager = localeManager;
         this.organizations = organizations;
         this.status = status;
     }
@@ -42,7 +45,7 @@ public final class MainController {
     }
 
     public void commandMessage(String command, Consumer<String> messageConsumer, String... args) {
-        run(() -> client.command(command, args), response -> messageConsumer.accept(response.getMessage()), true);
+        run(() -> client.command(command, args), response -> messageConsumer.accept(localeManager.message(response.getMessage())), true);
     }
 
     public void executeScript(Path path) {
@@ -65,10 +68,10 @@ public final class MainController {
             protected void done() {
                 try {
                     CommandResponse response = get();
-                    if (reportSuccess || !response.isSuccess()) status.accept(response.getMessage());
+                    if (reportSuccess || !response.isSuccess()) status.accept(localeManager.message(response.getMessage()));
                     if (response.isSuccess()) success.accept(response);
                 } catch (Exception e) {
-                    status.accept(e.getMessage());
+                    status.accept(localeManager.message(e.getMessage()));
                 }
             }
         }.execute();

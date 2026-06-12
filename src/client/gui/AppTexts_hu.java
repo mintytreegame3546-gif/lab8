@@ -22,6 +22,16 @@ public class AppTexts_hu extends ListResourceBundle {
                 {"table.owner", "Tulajdonos"}, {"dialog.ok", "OK"}, {"dialog.cancel", "Mégse"},
                 {"dialog.confirmClear", "Töröljük az összes saját szervezetet?"},
                 {"dialog.details", "Szervezet részletei"}, {"dialog.form", "Szervezet"},
+                {"main.refresh", "Frissítés"},
+                {"error.invalidInput", "Érvénytelen bevitel. Ellenőrizze a számmezőket és a kötelező értékeket."},
+                {"error.authRequired", "Hitelesítés szükséges. Jelentkezzen be vagy regisztráljon."},
+                {"error.invalidCredentials", "Érvénytelen felhasználónév vagy jelszó."},
+                {"error.userExists", "A felhasználó már létezik."},
+                {"error.loginRequired", "A belépéshez felhasználónév és jelszó szükséges."},
+                {"error.registerRequired", "A regisztrációhoz felhasználónév és jelszó szükséges."},
+                {"error.unknownCommand", "Ismeretlen parancs."},
+                {"error.serverUnavailable", "A szerver átmenetileg nem érhető el."},
+                {"error.payloadRequired", "Szervezeti adatok szükségesek."},
                 {"status.ready", "Kész"}, {"error.select", "Előbb válasszon szervezetet"},
                 {"error.owner", "Csak saját szervezetek módosíthatók"}
         };

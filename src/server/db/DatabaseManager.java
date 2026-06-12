@@ -111,7 +111,17 @@ public class DatabaseManager {
                      "DELETE FROM organizations WHERE id = ? AND owner_username = ?")) {
             statement.setLong(1, id);
             statement.setString(2, ownerUsername);
-            return statement.executeUpdate() > 0;
+            boolean deleted = statement.executeUpdate() > 0;
+            if (deleted) resetOrganizationIdsWhenEmpty(connection);
+            return deleted;
+        }
+    }
+
+    private void resetOrganizationIdsWhenEmpty(Connection connection) throws Exception {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT setval('organization_id_seq', 1, false) "
+                        + "WHERE NOT EXISTS (SELECT 1 FROM organizations)")) {
+            statement.execute();
         }
     }
 

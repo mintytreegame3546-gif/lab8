@@ -33,7 +33,10 @@ public final class VisualizationPanel extends JPanel {
                 findAt(e.getX(), e.getY()).ifPresent(VisualizationPanel.this::showDetails);
             }
         });
-        new Timer(16, event -> tick()).start();
+        new Timer(16, event -> {
+            if (event == null) return;
+            tick();
+        }).start();
     }
 
     protected void paintComponent(Graphics graphics) {

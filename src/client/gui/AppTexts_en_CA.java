@@ -43,6 +43,16 @@ public class AppTexts_en_CA extends ListResourceBundle {
                 {"dialog.details", "Organization details"},
                 {"dialog.form", "Organization"},
                 {"status.ready", "Ready"},
+                {"main.refresh", "Refresh"},
+                {"error.invalidInput", "Invalid input. Check number fields and required values."},
+                {"error.authRequired", "Authorization is required. Log in or register first."},
+                {"error.invalidCredentials", "Invalid username or password."},
+                {"error.userExists", "User already exists."},
+                {"error.loginRequired", "Login requires username and password."},
+                {"error.registerRequired", "Registration requires username and password."},
+                {"error.unknownCommand", "Unknown command."},
+                {"error.serverUnavailable", "Server is temporarily unavailable."},
+                {"error.payloadRequired", "Organization data is required."},
                 {"error.select", "Select an organization first"},
                 {"error.owner", "You can modify only your own organizations"}
         };

@@ -5,12 +5,10 @@ import data.Coordinates;
 import data.Organization;
 import data.OrganizationType;
 
-import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -50,7 +48,7 @@ public final class OrganizationFormDialog {
                     Float.parseFloat(turnover.getText().trim()), (OrganizationType) type.getSelectedItem(),
                     new Address(street.getText().trim(), zip.getText().trim())));
         } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(owner, e.getMessage(), localeManager.text("dialog.form"), JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(owner, localeManager.message(e.getMessage()), localeManager.text("dialog.form"), JOptionPane.ERROR_MESSAGE);
             return Optional.empty();
         }
     }

@@ -22,6 +22,16 @@ public class AppTexts_ru extends ListResourceBundle {
                 {"table.owner", "Владелец"}, {"dialog.ok", "ОК"}, {"dialog.cancel", "Отмена"},
                 {"dialog.confirmClear", "Удалить все ваши организации?"},
                 {"dialog.details", "Детали организации"}, {"dialog.form", "Организация"},
+                {"main.refresh", "Обновить"},
+                {"error.invalidInput", "Некорректный ввод. Проверьте числовые поля и обязательные значения."},
+                {"error.authRequired", "Требуется авторизация. Войдите или зарегистрируйтесь."},
+                {"error.invalidCredentials", "Неверное имя пользователя или пароль."},
+                {"error.userExists", "Пользователь уже существует."},
+                {"error.loginRequired", "Для входа нужны имя пользователя и пароль."},
+                {"error.registerRequired", "Для регистрации нужны имя пользователя и пароль."},
+                {"error.unknownCommand", "Неизвестная команда."},
+                {"error.serverUnavailable", "Сервер временно недоступен."},
+                {"error.payloadRequired", "Требуются данные организации."},
                 {"status.ready", "Готово"}, {"error.select", "Сначала выберите организацию"},
                 {"error.owner", "Можно изменять только свои организации"}
         };
