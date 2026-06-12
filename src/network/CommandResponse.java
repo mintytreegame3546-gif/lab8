@@ -4,8 +4,10 @@ import data.Organization;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+@SuppressWarnings("serial")
 public class CommandResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -25,5 +27,5 @@ public class CommandResponse implements Serializable {
 
     public boolean isSuccess() { return success; }
     public String getMessage() { return message; }
-    public List<Organization> getOrganizations() { return new ArrayList<>(organizations); }
+    public List<Organization> getOrganizations() { return Collections.unmodifiableList(organizations); }
 }
